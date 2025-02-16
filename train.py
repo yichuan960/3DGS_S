@@ -159,8 +159,6 @@ def training(dataset, opt, pipe, config, testing_iterations, saving_iterations, 
         # Spotless colors
         colors = image[:3, ...]
 
-        first_colors = colors.clone().permute(1,2,0).unsqueeze(0)
-
         error_per_pixel = torch.abs(colors - pixels) # colors pixels error_per_pixel [3,431,431]
         error_per_pixel = error_per_pixel.permute(1,2,0).unsqueeze(0) # [1,431,431,3]
         log_error_per_pixel = error_per_pixel.clone()
@@ -201,7 +199,7 @@ def training(dataset, opt, pipe, config, testing_iterations, saving_iterations, 
         new_his,new_avg = update_running_stats(running_stats)
         running_stats["hist_err"] = new_his
         running_stats["avg_err"] = new_avg
-        if iteration % config["save_mask_interval"] == 0 or iteration == 1:
+        if iteration % config["save_mask_interval"] == 0:
             path = os.path.join(scene.model_path, 'masks')
             seg_mask_path = os.path.join(path, 'seg_mask')
             pre_mask_path = os.path.join(path, 'pre_log')
@@ -224,10 +222,7 @@ def training(dataset, opt, pipe, config, testing_iterations, saving_iterations, 
             )
             log_pixels = pixels.clone().permute(1,2,0).unsqueeze(0)
             log_colors = colors.clone().permute(1,2,0).unsqueeze(0)
-            if iteration == 1:
-                temp = torch.cat([log_pixels, first_colors, log_error_per_pixel, rgb_pred_mask_1, rgb_pred_mask_2, rgb_mask, log_colors], dim=2)
-            else:
-                temp = torch.cat(
+            temp = torch.cat(
                     [log_pixels, log_error_per_pixel, rgb_pred_mask_1, rgb_pred_mask_2, rgb_mask, log_colors], dim=2)
             canvas = (
                 temp
